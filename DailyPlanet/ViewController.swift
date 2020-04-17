@@ -9,6 +9,12 @@
 import UIKit
 
 class ViewController: UIViewController {
+    
+    let tableView = UITableView()
+    
+    let cellId = "cellId"
+    
+    var pokemon: [PokeEntryCodable] = []
 
     @IBOutlet weak var nasaDailyImageView: UIImageView!
     
@@ -19,6 +25,9 @@ class ViewController: UIViewController {
         
         //TODO: Call function to fetch image data here
         fetchNasaDailyImage()
+        
+        setupTableView()
+        
         
     }
 
@@ -51,7 +60,7 @@ class ViewController: UIViewController {
         let defaultSession = URLSession(configuration: .default)
         
         //TODO: Create URL (...and send request and process response in closure...)
-        if let url = URL(string: "https://apod.nasa.gov/apod/image/2004/MVP_Aspinall_2048.jpg") {
+        if let url = URL(string: "https://pokeapi.co/api/v2/generation/3/") {
             
            //TODO: Create Request here
             let request = URLRequest(url: url)
@@ -73,6 +82,35 @@ class ViewController: UIViewController {
             dataTask.resume()
         }
     }
+    
+    func setupTableView() {
+      view.addSubview(tableView)
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellId)
+        tableView.delegate = self
+        tableView.dataSource = self
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        tableView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
+        tableView.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
+        tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
+        tableView.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
+//        getDataFromFile("locations")
+    }
 
 }
 
+extension ViewController: UITableViewDataSource, UITableViewDelegate{
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 100
+    }
+    
+  func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    return pokemon.count
+  }
+  func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath)
+    let movie = pokemon[indexPath.row]
+//    cell.textLabel?.text = movie.locations
+//    cell.textLabel?.text = movie.locations + " " + movie.releaseYear.value
+    return cell
+  }
+}
