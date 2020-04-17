@@ -8,7 +8,12 @@
 
 import Foundation
 
-struct Pokemon: Decodable {
+struct Pokemon: Codable {
     let name: String
     let url: String
+}
+
+struct List: Codable {
+    let next: String?
+    let results: [Pokemon]
 }

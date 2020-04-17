@@ -14,7 +14,10 @@ class ViewController: UIViewController {
     
     let cellId = "cellId"
     
-    var pokemon: [PokeEntryCodable] = []
+    var pokemon: [Pokemon] = []
+    
+    let url = "https://pokeapi.co/api/v2/pokemon/"
+    
 
     @IBOutlet weak var nasaDailyImageView: UIImageView!
     
@@ -52,37 +55,49 @@ class ViewController: UIViewController {
         })
         dataTask.resume()
     }
-
+    
+    
      // CODE BASE for In-Class Activity I
     func fetchNasaDailyImage() {
-    
+        
         //TODO: Create session configuration here
         let defaultSession = URLSession(configuration: .default)
-        
+
         //TODO: Create URL (...and send request and process response in closure...)
-        if let url = URL(string: "https://pokeapi.co/api/v2/generation/3/") {
+        if let url = URL(string: url) {
             
            //TODO: Create Request here
             let request = URLRequest(url: url)
-
+            
             // Create Data Task...
             let dataTask = defaultSession.dataTask(with: request, completionHandler: { (data, response, error) -> Void in
                 
                 print("data is: ", data!)
                 print("response is: ", response!)
                 
-                if let data = data, let image = UIImage(data: data) {
-                    DispatchQueue.main.async {
-                        
-                          //TODO: Insert downloaded image into imageView
-                        self.nasaDailyImageView.image = UIImage(data: data)
+                do {
+                    if let json = try? JSONSerialization.jsonObject(with: data!, options: []) {
+                        print(json)
                     }
+                    
+                    let decoder = JSONDecoder()
+                    decoder.keyDecodingStrategy = .convertFromSnakeCase
+                    let pokemans = try decoder.decode(List.self, from: data!)
+                    self.pokemon.append(contentsOf: pokemans.results)
+                    
+                    DispatchQueue.main.async {
+                        self.tableView.reloadData()
+                    }
+    
+                } catch {
+                    print("JSON error: \(error.localizedDescription)")
                 }
+                
             })
             dataTask.resume()
         }
     }
-    
+
     func setupTableView() {
       view.addSubview(tableView)
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellId)
@@ -108,9 +123,9 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate{
   }
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath)
-    let movie = pokemon[indexPath.row]
-//    cell.textLabel?.text = movie.locations
-//    cell.textLabel?.text = movie.locations + " " + movie.releaseYear.value
+//    let pokemans = pokemon[indexPath.row]
+    cell.textLabel?.text = pokemon[indexPath.row].name
+//    cell.textLabel?.text = pokemans.locations + " " + pokemans.releaseYear.value
     return cell
   }
 }
