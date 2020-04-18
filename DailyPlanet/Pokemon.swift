@@ -14,6 +14,7 @@ struct Pokemon: Codable {
 }
 
 struct List: Codable {
+    let count: Int
     let next: String?
     let results: [Pokemon]
 }

@@ -11,27 +11,19 @@ import UIKit
 class ViewController: UIViewController {
     
     let tableView = UITableView()
-    
     let cellId = "cellId"
-    
     var pokemon: [Pokemon] = []
-    
     let url = "https://pokeapi.co/api/v2/pokemon/"
+    var count = 964
     
 
     @IBOutlet weak var nasaDailyImageView: UIImageView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
         fetchHeaderData()
-        
-        //TODO: Call function to fetch image data here
-        fetchNasaDailyImage()
-        
+        fetchPokemonName()
         setupTableView()
-        
-        
     }
 
     //MARK: Data Fetch functions
@@ -58,7 +50,7 @@ class ViewController: UIViewController {
     
     
      // CODE BASE for In-Class Activity I
-    func fetchNasaDailyImage() {
+    func fetchPokemonName() {
         
         //TODO: Create session configuration here
         let defaultSession = URLSession(configuration: .default)
@@ -125,7 +117,13 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate{
     let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath)
 //    let pokemans = pokemon[indexPath.row]
     cell.textLabel?.text = pokemon[indexPath.row].name
-//    cell.textLabel?.text = pokemans.locations + " " + pokemans.releaseYear.value
+    
+    if indexPath.row == pokemon.count - 1 { // last cell
+        if count > pokemon.count {
+           fetchPokemonName()
+        }
+    }
+    
     return cell
   }
 }
