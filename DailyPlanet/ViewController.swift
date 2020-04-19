@@ -14,7 +14,9 @@ class ViewController: UIViewController {
     let cellId = "cellId"
     var pokemon: [Pokemon] = []
     let url = "https://pokeapi.co/api/v2/pokemon/"
-    var count = 964
+    var count = 964 // total count from API TODO: access count dynamically
+    var nextURL: String? = "https://pokeapi.co/api/v2/pokemon/?offset=40&limit=20"
+    var nextBatch: String? = nil
     
 
     @IBOutlet weak var nasaDailyImageView: UIImageView!
@@ -22,7 +24,7 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         fetchHeaderData()
-        fetchPokemonName()
+        fetchPokemonName(url: url)
         setupTableView()
     }
 
@@ -50,7 +52,7 @@ class ViewController: UIViewController {
     
     
      // CODE BASE for In-Class Activity I
-    func fetchPokemonName() {
+    func fetchPokemonName(url: String) {
         
         //TODO: Create session configuration here
         let defaultSession = URLSession(configuration: .default)
@@ -67,29 +69,42 @@ class ViewController: UIViewController {
                 print("data is: ", data!)
                 print("response is: ", response!)
                 
+                // handle error
+                if let error = error {
+                    print("failed to fetch, error: ", error.localizedDescription)
+                    return
+                }
+                
+                guard let data = data else { return }
+                
                 do {
-                    if let json = try? JSONSerialization.jsonObject(with: data!, options: []) {
+                    if let json = try? JSONSerialization.jsonObject(with: data, options: []) {
                         print(json)
                     }
                     
                     let decoder = JSONDecoder()
                     decoder.keyDecodingStrategy = .convertFromSnakeCase
-                    let pokemans = try decoder.decode(List.self, from: data!)
+                    
+                    let pokemans = try decoder.decode(List.self, from: data)
                     self.pokemon.append(contentsOf: pokemans.results)
                     
                     DispatchQueue.main.async {
                         self.tableView.reloadData()
                     }
-    
+                    
+                    self.nextBatch = pokemans.next!
+                    
                 } catch {
-                    print("JSON error: \(error.localizedDescription)")
+                    print("JSON error: ", error.localizedDescription)
                 }
                 
             })
+            
             dataTask.resume()
         }
     }
 
+    
     func setupTableView() {
       view.addSubview(tableView)
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellId)
@@ -100,7 +115,6 @@ class ViewController: UIViewController {
         tableView.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
         tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
         tableView.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
-//        getDataFromFile("locations")
     }
 
 }
@@ -115,12 +129,12 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate{
   }
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath)
-//    let pokemans = pokemon[indexPath.row]
     cell.textLabel?.text = pokemon[indexPath.row].name
     
     if indexPath.row == pokemon.count - 1 { // last cell
-        if count > pokemon.count {
-           fetchPokemonName()
+        if count > pokemon.count { // only fetch more when there's more in the API
+            fetchPokemonName(url: nextURL!)
+//            loadMorePokemon()
         }
     }
     
